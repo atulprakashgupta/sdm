@@ -1,1 +1,1 @@
-web: python -m flask --app run init-db; python run.py
+web: gunicorn --bind 0.0.0.0:$PORT --workers 2 "run:app"
