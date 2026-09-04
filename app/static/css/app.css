@@ -2,8 +2,13 @@ body {
     background: #f8f9fa;
 }
 
+nav.navbar {
+    padding: 0.5rem 0;
+}
+
 .navbar-brand-centered {
     font-weight: 700;
+    position: static;
 }
 
 @media (min-width: 992px) {
@@ -12,6 +17,35 @@ body {
         left: 50%;
         transform: translateX(-50%);
     }
+}
+
+/* Navbar alignment fixes */
+nav.navbar .container {
+    display: flex;
+    align-items: center;
+    min-height: auto;
+}
+
+.navbar-nav {
+    display: flex;
+    align-items: center;
+}
+
+.navbar-nav .nav-link {
+    padding: 0.5rem 1rem !important;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.navbar-text {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.btn-outline-light {
+    padding: 0.375rem 0.75rem !important;
 }
 
 .card {
