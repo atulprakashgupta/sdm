@@ -29,6 +29,23 @@ body {
     }
 }
 
+/* Active nav link styling */
+.navbar-nav .nav-link.active {
+    font-weight: 600;
+    border-bottom: 3px solid #0d6efd;
+    padding-bottom: calc(0.75rem - 3px) !important;
+}
+
+/* Clickable SDM rows */
+.sdm-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.sdm-row:hover {
+    background-color: #f0f0f0;
+}
+
 .card {
     border-radius: 0.5rem;
 }

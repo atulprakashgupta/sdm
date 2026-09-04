@@ -26,25 +26,40 @@ bp = Blueprint("main", __name__)
 @login_required
 def index():
     assigned_only = request.args.get("assigned") == "1"
+    view_mode = request.args.get("view", "dashboard")  # dashboard, assigned, or reports
+    
     params = []
     where_clause = ""
-    if assigned_only:
-        where_clause = "WHERE s.current_assignee_id = ? AND s.status NOT IN ('CANCELLED', 'CLOSED', 'COMPLETED', 'REJECTED')"
+    
+    if assigned_only or view_mode == "assigned":
+        # Show both assigned AND returned SDMs for the current user
+        where_clause = """WHERE (
+            (s.current_assignee_id = ? AND s.status NOT IN ('CANCELLED', 'CLOSED', 'COMPLETED', 'REJECTED'))
+            OR s.status = 'RETURNED'
+        )"""
         params.append(g.user["id"])
 
     all_sdms = db.query_all(
         f"""
-        SELECT s.*, l.name AS line_name, st.name AS station_name, r.name AS reason_name
+        SELECT s.*, l.name AS line_name, st.name AS station_name, r.name AS reason_name, c.name AS contractor_name
         FROM sdm s
         JOIN lines l ON l.id = s.line_id
         JOIN stations st ON st.id = s.station_id
         JOIN reasons r ON r.id = s.reason_id
+        JOIN contractors c ON c.id = s.contractor_id
         {where_clause}
         ORDER BY s.created_at DESC
         """,
         params,
     )
-    return render_template("dashboard.html", all_sdms=all_sdms, assigned_only=assigned_only)
+    
+    # Determine which view to show
+    if assigned_only or view_mode == "assigned":
+        return render_template("dashboard.html", all_sdms=all_sdms, view_mode="assigned")
+    elif view_mode == "reports":
+        return render_template("dashboard.html", all_sdms=all_sdms, view_mode="reports", **form_options())
+    else:
+        return render_template("dashboard.html", all_sdms=all_sdms, view_mode="dashboard")
 
 
 def form_options():
@@ -584,3 +599,75 @@ def uploaded_file(sdm_id, filename):
     if not workflow.can_view_sdm(g.user, sdm):
         abort(403)
     return send_from_directory(f"{current_app.config['UPLOAD_FOLDER']}/{sdm_id}", filename)
+
+
+@bp.route("/export.csv")
+@login_required
+def export_csv():
+    import csv
+    import io
+    
+    # Only allow CONCERNED_CELL and admins to export
+    if g.user["role"] != "CONCERNED_CELL" and not g.user["is_admin"]:
+        abort(403)
+    
+    params = []
+    where_clause = ""
+    
+    # Apply filters from request args
+    clauses = ["1 = 1"]
+    if request.args.get("from_date"):
+        clauses.append("s.memo_date >= ?")
+        params.append(request.args["from_date"])
+    if request.args.get("to_date"):
+        clauses.append("s.memo_date <= ?")
+        params.append(request.args["to_date"])
+    for key, column in [("line_id", "s.line_id"), ("station_id", "s.station_id"), ("reason_id", "s.reason_id")]:
+        if request.args.get(key):
+            clauses.append(f"{column} = ?")
+            params.append(request.args[key])
+    if request.args.get("status"):
+        clauses.append("s.status = ?")
+        params.append(request.args["status"])
+    
+    where_clause = "WHERE " + " AND ".join(clauses)
+    
+    rows = db.query_all(
+        f"""
+        SELECT s.*, l.name AS line_name, st.name AS station_name, c.name AS contractor_name,
+               r.name AS reason_name, u.name AS assignee_name
+        FROM sdm s
+        JOIN lines l ON l.id = s.line_id
+        JOIN stations st ON st.id = s.station_id
+        JOIN contractors c ON c.id = s.contractor_id
+        JOIN reasons r ON r.id = s.reason_id
+        LEFT JOIN users u ON u.id = s.current_assignee_id
+        {where_clause}
+        ORDER BY s.created_at DESC
+        """,
+        params,
+    )
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["SDM No.", "Foil No.", "Date", "Line", "Station", "Contractor", "Staff", "Reason", "Status", "Current Officer"])
+    for row in rows:
+        writer.writerow(
+            [
+                row["sdm_no"],
+                row["foil_no"],
+                row["memo_date"],
+                row["line_name"],
+                row["station_name"],
+                row["contractor_name"],
+                row["staff_name"],
+                row["reason_name"],
+                row["status"],
+                row["assignee_name"],
+            ]
+        )
+    
+    response = current_app.make_response(output.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=sdm_report.csv"
+    response.headers["Content-Type"] = "text/csv"
+    return response
