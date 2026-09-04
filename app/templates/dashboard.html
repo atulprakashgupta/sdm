@@ -77,7 +77,7 @@
                     <tr class="sdm-row" onclick="window.location='{{ url_for('main.view_sdm', sdm_id=row.id) }}';">
                         <td>{{ row.sdm_no.replace('SDM No. - ', '') if row.sdm_no else 'Draft' }}</td>
                         <td>{{ row.foil_no }}</td>
-                        <td>{{ row.memo_date }}</td>
+                        <td>{{ row.memo_date.replace('-', '.') if '.' not in row.memo_date else row.memo_date }}</td>
                         <td>{{ row.station_name }}</td>
                         <td>{{ row.contractor_name }}</td>
                         <td>{{ row.reason_name }}</td>

@@ -47,8 +47,8 @@ body {
 
 /* Column width adjustments to prevent text wrapping */
 .table th:nth-child(2), .table td:nth-child(2) {
-    min-width: 120px;
-    width: 120px;
+    min-width: 84px;
+    width: 84px;
 }
 
 .table th:nth-child(3), .table td:nth-child(3) {

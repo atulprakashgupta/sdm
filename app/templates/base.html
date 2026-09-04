@@ -18,12 +18,13 @@
             {% if g.user %}
                 <ul class="navbar-nav me-auto">
                     {% set current_request = request.path %}
+                    {% set is_assigned_view = request.args.get('assigned') == '1' %}
                     <li class="nav-item">
-                        <a class="nav-link {% if current_request == url_for('main.index') %}active{% endif %}" href="{{ url_for('main.index') }}">Dashboard</a>
+                        <a class="nav-link {% if current_request == url_for('main.index') and not is_assigned_view %}active{% endif %}" href="{{ url_for('main.index') }}">Dashboard</a>
                     </li>
                     {% if g.user.role in ['STATION_MANAGER', 'LINE_MANAGER', 'DY_HOD', 'CONCERNED_CELL'] %}
                         <li class="nav-item">
-                            <a class="nav-link {% if current_request == url_for('main.index') and request.args.get('assigned') == '1' %}active{% endif %}" href="{{ url_for('main.index', assigned=1) }}">Assigned to Me</a>
+                            <a class="nav-link {% if current_request == url_for('main.index') and is_assigned_view %}active{% endif %}" href="{{ url_for('main.index', assigned=1) }}">Assigned to Me</a>
                         </li>
                     {% endif %}
                     {% if g.user.role in ['STATION_CONTROLLER', 'STATION_MANAGER'] %}
