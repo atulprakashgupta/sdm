@@ -31,11 +31,6 @@
                             <a class="nav-link {% if current_request == url_for('main.new_sdm') %}active{% endif %}" href="{{ url_for('main.new_sdm') }}">New SDM</a>
                         </li>
                     {% endif %}
-                    {% if g.user.role == 'CONCERNED_CELL' or g.user.is_admin %}
-                        <li class="nav-item">
-                            <a class="nav-link {% if current_request == url_for('reports.reports') %}active{% endif %}" href="{{ url_for('reports.reports') }}">Reports</a>
-                        </li>
-                    {% endif %}
                     {% if g.user.is_admin %}
                         <li class="nav-item">
                             <a class="nav-link {% if current_request == url_for('admin.admin_index') %}active{% endif %}" href="{{ url_for('admin.admin_index') }}">Admin</a>

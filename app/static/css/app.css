@@ -29,11 +29,10 @@ body {
     }
 }
 
-/* Active nav link styling */
+/* Active nav link styling - just font weight, no border to avoid navbar height increase */
 .navbar-nav .nav-link.active {
     font-weight: 600;
-    border-bottom: 3px solid #0d6efd;
-    padding-bottom: calc(0.75rem - 3px) !important;
+    color: #ffffff !important;
 }
 
 /* Clickable SDM rows */
@@ -44,6 +43,17 @@ body {
 
 .sdm-row:hover {
     background-color: #f0f0f0;
+}
+
+/* Column width adjustments to prevent text wrapping */
+.table th:nth-child(2), .table td:nth-child(2) {
+    min-width: 120px;
+    width: 120px;
+}
+
+.table th:nth-child(3), .table td:nth-child(3) {
+    min-width: 110px;
+    width: 110px;
 }
 
 .card {

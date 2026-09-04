@@ -2,62 +2,60 @@
 {% block title %}Dashboard · SDM System{% endblock %}
 
 {% block content %}
-{% if view_mode == "reports" %}
-    <!-- Reports Filter Form -->
-    <form class="card card-body mb-3 no-print">
-        <div class="row g-3">
-            <div class="col-md-2">
-                <label class="form-label">From</label>
-                <input class="form-control" type="date" name="from_date" value="{{ request.args.get('from_date', '') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">To</label>
-                <input class="form-control" type="date" name="to_date" value="{{ request.args.get('to_date', '') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Line</label>
-                <select class="form-select" name="line_id">
-                    <option value="">All</option>
-                    {% for line in lines %}
-                        <option value="{{ line.id }}" {% if request.args.get('line_id') == line.id|string %}selected{% endif %}>{{ line.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Station</label>
-                <select class="form-select" name="station_id">
-                    <option value="">All</option>
-                    {% for station in stations %}
-                        <option value="{{ station.id }}" {% if request.args.get('station_id') == station.id|string %}selected{% endif %}>{{ station.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Reason</label>
-                <select class="form-select" name="reason_id">
-                    <option value="">All</option>
-                    {% for reason in reasons %}
-                        <option value="{{ reason.id }}" {% if request.args.get('reason_id') == reason.id|string %}selected{% endif %}>{{ reason.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Status</label>
-                <select class="form-select" name="status">
-                    <option value="">All</option>
-                    {% for status in ['DRAFT', 'PENDING', 'IN_REVIEW', 'RETURNED', 'CANCELLED', 'CLOSED', 'COMPLETED', 'REJECTED'] %}
-                        <option value="{{ status }}" {% if request.args.get('status') == status %}selected{% endif %}>{{ status }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-12">
-                <button class="btn btn-primary">Search</button>
-                <a class="btn btn-outline-secondary" href="{{ url_for('main.index', view='reports') }}">Reset</a>
-                <a class="btn btn-outline-primary" href="{{ url_for('main.export_csv') }}">Export CSV</a>
-            </div>
+<!-- Filter Form - Always visible -->
+<form class="card card-body mb-3 no-print">
+    <div class="row g-3">
+        <div class="col-md-2">
+            <label class="form-label">From</label>
+            <input class="form-control" type="date" name="from_date" value="{{ request.args.get('from_date', '') }}">
         </div>
-    </form>
-{% endif %}
+        <div class="col-md-2">
+            <label class="form-label">To</label>
+            <input class="form-control" type="date" name="to_date" value="{{ request.args.get('to_date', '') }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Line</label>
+            <select class="form-select" name="line_id">
+                <option value="">All</option>
+                {% for line in lines %}
+                    <option value="{{ line.id }}" {% if request.args.get('line_id') == line.id|string %}selected{% endif %}>{{ line.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Station</label>
+            <select class="form-select" name="station_id">
+                <option value="">All</option>
+                {% for station in stations %}
+                    <option value="{{ station.id }}" {% if request.args.get('station_id') == station.id|string %}selected{% endif %}>{{ station.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Reason</label>
+            <select class="form-select" name="reason_id">
+                <option value="">All</option>
+                {% for reason in reasons %}
+                    <option value="{{ reason.id }}" {% if request.args.get('reason_id') == reason.id|string %}selected{% endif %}>{{ reason.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="status">
+                <option value="">All</option>
+                {% for status in ['DRAFT', 'PENDING', 'IN_REVIEW', 'RETURNED', 'CANCELLED', 'CLOSED', 'COMPLETED', 'REJECTED'] %}
+                    <option value="{{ status }}" {% if request.args.get('status') == status %}selected{% endif %}>{{ status }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-12">
+            <button class="btn btn-primary">Search</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('main.index') }}">Reset</a>
+            <a class="btn btn-outline-primary" href="{{ url_for('main.export_csv', **request.args) }}">Export CSV</a>
+        </div>
+    </div>
+</form>
 
 <div class="card my-3">
     <div class="card-body">
@@ -76,7 +74,7 @@
                 </thead>
                 <tbody>
                 {% for row in all_sdms %}
-                    <tr class="sdm-row" onclick="window.location='{{ url_for('main.view_sdm', sdm_id=row.id) }}';" style="cursor: pointer;">
+                    <tr class="sdm-row" onclick="window.location='{{ url_for('main.view_sdm', sdm_id=row.id) }}';">
                         <td>{{ row.sdm_no.replace('SDM No. - ', '') if row.sdm_no else 'Draft' }}</td>
                         <td>{{ row.foil_no }}</td>
                         <td>{{ row.memo_date }}</td>
@@ -93,10 +91,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    .sdm-row:hover {
-        background-color: #f5f5f5;
-    }
-</style>
 {% endblock %}
