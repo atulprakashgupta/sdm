@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Print {{ display_sdm_number(sdm.sdm_no) }}{% endblock %}
+
+{% block content %}
+<div class="no-print d-flex justify-content-between print-toolbar">
+    <a class="btn btn-outline-dark" href="{{ url_for('main.view_sdm', sdm_id=sdm.id) }}">Back</a>
+    <button class="btn btn-primary" onclick="window.print()">Print</button>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <h1 class="h4 text-center mb-1">Service Deficiency Memo</h1>
+        <p class="text-center text-muted mb-4">{{ display_sdm_number(sdm.sdm_no) }}</p>
+
+        <div class="row g-3 mb-4">
+            <div class="col-4"><strong>Foil No.:</strong> {{ sdm.foil_no }}</div>
+            <div class="col-4"><strong>Date:</strong> {{ sdm.memo_date }}</div>
+            <div class="col-4"><strong>Status:</strong> {{ sdm.status }}</div>
+            <div class="col-4"><strong>Line:</strong> {{ sdm.line_name }}</div>
+            <div class="col-4"><strong>Station:</strong> {{ sdm.station_name }}</div>
+            <div class="col-4"><strong>Contractor:</strong> {{ sdm.contractor_name }}</div>
+            <div class="col-4"><strong>Contractor Staff:</strong> {{ sdm.staff_name }}</div>
+            <div class="col-4"><strong>Emp. ID:</strong> {{ sdm.staff_emp_id }}</div>
+            <div class="col-12"><strong>Reason:</strong> {{ sdm.reason_name }}</div>
+        </div>
+
+        <h2 class="h6 border-bottom pb-2">Reason Details</h2>
+        {% if sdm.needs_public_complaint %}
+            <p><strong>Complaint No.:</strong> {{ payload.get('complaint_no') }}</p>
+        {% elif sdm.needs_overcharging_status %}
+            <p><strong>Overcharging:</strong> {{ payload.get('overcharging_status', '').replace('_', ' ')|title }}</p>
+        {% elif sdm.needs_inspection_details %}
+            {% set inspection = payload.get('inspection', {}) %}
+            <div class="row g-2">
+                <div class="col-6"><strong>TOM/CC/TVM/Location:</strong> {{ inspection.get('location_no') }}</div>
+                <div class="col-6"><strong>EOS Receipt No.:</strong> {{ inspection.get('eos_receipt_no') or '-' }}</div>
+                <div class="col-6"><strong>Date/Time:</strong> {{ inspection.get('date_of_check') }} {{ inspection.get('time_of_check') }}</div>
+                <div class="col-6"><strong>Net amount as per EOS:</strong> {{ inspection.get('net_amount_eos') }}</div>
+                <div class="col-6"><strong>Amount found:</strong> {{ inspection.get('amount_found') }}</div>
+                <div class="col-6"><strong>Hidden cash:</strong> {{ inspection.get('hidden_cash_found') or '-' }}</div>
+                <div class="col-6"><strong>Result:</strong> {{ inspection.get('result') }}</div>
+                <div class="col-12"><strong>Accountal:</strong> {{ inspection.get('accountal') or '-' }}</div>
+            </div>
+        {% else %}
+            <p>No additional details required.</p>
+        {% endif %}
+
+        <h2 class="h6 border-bottom pb-2 mt-4">Workflow / Audit History</h2>
+        <table class="table table-bordered table-sm">
+            <thead><tr><th>Date/Time</th><th>Action</th><th>Officer/Emp. No./Designation</th><th>Remarks</th></tr></thead>
+            <tbody>
+            {% for event in events %}
+                <tr>
+                    <td>{{ event.created_at }}</td>
+                    <td>{{ event.event_type.replace('_', ' ')|title }}</td>
+                    <td>{{ event.actor_name }} / {{ event.actor_emp_id }} / {{ event.actor_designation }}</td>
+                    <td>{{ event.note or '-' }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4" class="text-muted">No audit history available.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <h2 class="h6 border-bottom pb-2 mt-4">Attachments</h2>
+        <ul>
+            {% for attachment in attachments %}
+                <li>{{ attachment.original_filename }} · uploaded {{ attachment.uploaded_at }}</li>
+            {% else %}
+                <li>No attachments.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

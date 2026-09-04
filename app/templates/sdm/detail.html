@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}{{ display_sdm_number(sdm.sdm_no) }} · SDM System{% endblock %}
+
+{% block content %}
+<div class="no-print d-flex gap-2 justify-content-end mb-3">
+    {% if can_edit %}
+        <a class="btn btn-primary" href="{{ url_for('main.edit_sdm', sdm_id=sdm.id) }}">Edit</a>
+    {% endif %}
+    <a class="btn btn-outline-dark" href="{{ url_for('main.print_sdm', sdm_id=sdm.id) }}">Printable View</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-header">SDM details</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4"><div class="section-label">SDM No.</div>{{ display_sdm_number(sdm.sdm_no) }}</div>
+                    <div class="col-md-4"><div class="section-label">Foil No.</div>{{ sdm.foil_no }}</div>
+                    <div class="col-md-4"><div class="section-label">Station</div>{{ sdm.station_name }}</div>
+                    <div class="col-md-4"><div class="section-label">Date</div>{{ sdm.memo_date }}</div>
+                    <div class="col-md-4"><div class="section-label">Line</div>{{ sdm.line_name }}</div>
+                    <div class="col-md-4"><div class="section-label">Current Role</div>{{ sdm.current_role.replace('_', ' ') }}</div>
+                    <div class="col-md-4"><div class="section-label">Contractor Staff</div>{{ sdm.staff_name }}</div>
+                    <div class="col-md-4"><div class="section-label">Staff Emp. ID</div>{{ sdm.staff_emp_id }}</div>
+                    <div class="col-md-4"><div class="section-label">Contractor</div>{{ sdm.contractor_name }}</div>
+                    <div class="col-md-12"><div class="section-label">Reason</div>{{ sdm.reason_name }}</div>
+                    {% if sdm.penalty_amount %}
+                        <div class="col-md-4"><div class="section-label">Penalty Amount</div>₹{{ sdm.penalty_amount }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">Attachments</div>
+            <div class="list-group list-group-flush">
+                {% for attachment in attachments %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="{{ url_for('main.uploaded_file', sdm_id=sdm.id, filename=attachment.stored_filename) }}" target="_blank">{{ attachment.original_filename }}</a>
+                            <span class="text-muted small"> · {{ (attachment.size_bytes / 1024)|round(1) }} KB · uploaded by {{ attachment.uploaded_by_name }}</span>
+                        </div>
+                        {% if sdm.status == 'DRAFT' and sdm.created_by == g.user.id %}
+                            <form method="post" action="{{ url_for('main.delete_attachment', sdm_id=sdm.id, attachment_id=attachment.id) }}">
+                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="list-group-item text-muted">No attachments uploaded.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        {% if can_act %}
+            <div class="card mb-3 no-print">
+                <div class="card-header">Officer action</div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('main.sdm_action', sdm_id=sdm.id) }}" data-current-penalty="{{ sdm.penalty_amount or '' }}">
+                        <div class="mb-3">
+                            <label class="form-label">Add Note/Remarks</label>
+                            <textarea class="form-control" name="note" rows="2"></textarea>
+                        </div>
+                        {% if sdm.current_role == 'LINE_MANAGER' %}
+                            <div class="mb-3">
+                                <label class="form-label">Penalty Amount *</label>
+                                <input type="number" class="form-control" name="penalty_amount" step="0.01" value="{{ sdm.penalty_amount or '' }}" required>
+                                <div class="form-text">Enter penalty amount (can be 0). Higher authorities can modify this later.</div>
+                            </div>
+                        {% endif %}
+                        {% if sdm.penalty_amount and sdm.current_role in ['DY_HOD', 'HOD', 'CONCERNED_CELL'] %}
+                            <div class="mb-3">
+                                <label class="form-label">Modify Penalty Amount</label>
+                                <input type="number" class="form-control" name="penalty_amount_modified" step="0.01" value="{{ sdm.penalty_amount or '' }}">
+                            </div>
+                        {% endif %}
+                        {% if next_stage %}
+                            <div class="mb-3">
+                                <label class="form-label">If supervisor is absent/leave, enter alternate details</label>
+                                <input class="form-control mb-2" name="alternate_name" placeholder="Name">
+                                <input class="form-control" name="alternate_emp_id" placeholder="Employment No.">
+                            </div>
+                        {% endif %}
+                        <div class="d-grid gap-2">
+                            {% if sdm.current_role == 'CONCERNED_CELL' %}
+                                <button class="btn btn-success" name="action" value="accept">Accept</button>
+                                <button class="btn btn-danger" name="action" value="reject">Reject</button>
+                            {% else %}
+                                <button class="btn btn-primary" name="action" value="forward">{{ 'Close at Concerned Cell' if not next_stage else 'Submit' }}</button>
+                            {% endif %}
+                            <button class="btn btn-outline-warning" name="action" value="return">Return to previous officer</button>
+                            {% if can_cancel %}
+                                <button class="btn btn-outline-danger" name="action" value="cancel">Cancel SDM</button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Workflow / Audit history</div>
+            <div class="card-body">
+                <table class="table table-sm table-bordered">
+                    <thead><tr><th>Date/Time</th><th>Action</th><th>Officer/Emp. No./Designation</th><th>Remarks</th></tr></thead>
+                    <tbody>
+                    {% for event in events %}
+                        <tr>
+                            <td>{{ event.created_at }}</td>
+                            <td>{{ event.event_type.replace('_', ' ')|title }}</td>
+                            <td>{{ event.actor_name }} / {{ event.actor_emp_id }} / {{ event.actor_designation }}</td>
+                            <td>{{ event.note or '-' }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="4" class="text-muted">No audit history available.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelector("form[data-current-penalty]")?.addEventListener("submit", (event) => {
+    const form = event.currentTarget;
+    const input = form.querySelector("[name='penalty_amount_modified']");
+    if (!input || input.value === "" || input.value === form.dataset.currentPenalty) return;
+    if (!window.confirm("Confirm modified penalty amount before submitting?")) {
+        event.preventDefault();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,3 @@
+Name,Emp ID,Designation,Reports To Name,Reports To Emp ID
+Zone Manager,ZM9001,Line Manager,,
+Zone Controller,ZC9002,Station Controller,Zone Manager,ZM9001

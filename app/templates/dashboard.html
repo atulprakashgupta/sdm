@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · SDM System{% endblock %}
+
+{% block content %}
+<div class="card my-3">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead><tr><th>SDM No.</th><th>Foil No.</th><th>Line</th><th>Station</th><th>Reason</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                {% for row in all_sdms %}
+                    <tr>
+                        <td>{{ row.sdm_no.replace('SDM No. - ', '') if row.sdm_no else 'Draft' }}</td>
+                        <td>{{ row.foil_no }}</td>
+                        <td>{{ row.line_name }}</td>
+                        <td>{{ row.station_name }}</td>
+                        <td>{{ row.reason_name }}</td>
+                        <td><span class="badge status-badge status-{{ row.status|lower|replace('_', '-') }}">{{ row.status }}</span></td>
+                        <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('main.view_sdm', sdm_id=row.id) }}">Open</a></td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7" class="text-muted">No SDMs found.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

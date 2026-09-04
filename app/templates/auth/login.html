@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Login · SDM System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="h4 mb-3">Login</h1>
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Employment No. / Username</label>
+                        <input class="form-control" name="username" placeholder="Enter employment number" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input class="form-control" type="password" name="password" required>
+                    </div>
+                    <button class="btn btn-primary w-100">Login</button>
+                    <p class="text-center mb-0 mt-3">
+                        <a class="small" href="{{ url_for('auth.forgot_password') }}">Forgot password?</a>
+                    </p>
+                </form>
+               
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

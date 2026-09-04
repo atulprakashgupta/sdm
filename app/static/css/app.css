@@ -1,0 +1,95 @@
+body {
+    background: #f8f9fa;
+}
+
+.navbar-brand-centered {
+    font-weight: 700;
+}
+
+@media (min-width: 992px) {
+    .navbar-brand-centered {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+.card {
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    background: #e7f1ff;
+    color: #0a3d62;
+    font-weight: 600;
+}
+
+.status-badge {
+    border: 1px solid transparent;
+}
+
+.status-pending,
+.status-in-review,
+.status-returned {
+    background: #fff3cd;
+    color: #664d03;
+    border-color: #ffecb5;
+}
+
+.status-completed,
+.status-closed {
+    background: #d1e7dd;
+    color: #0f5132;
+    border-color: #badbcc;
+}
+
+.status-rejected,
+.status-cancelled {
+    background: #f8d7da;
+    color: #842029;
+    border-color: #f5c2c7;
+}
+
+.status-draft {
+    background: #e2e3e5;
+    color: #41464b;
+    border-color: #d3d6d8;
+}
+
+.section-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.timeline-item {
+    border-left: 3px solid #dee2e6;
+    padding-left: 1rem;
+    margin-left: 0.25rem;
+}
+
+.print-toolbar {
+    margin-bottom: 1.25rem;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        background: white;
+    }
+
+    main.container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+    }
+
+    .card {
+        border: 1px solid #777;
+        box-shadow: none !important;
+    }
+}

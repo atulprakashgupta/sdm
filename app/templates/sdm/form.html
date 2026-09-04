@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if sdm else 'New' }} SDM · SDM System{% endblock %}
+
+{% block content %}
+<h1 class="h3">{{ 'Edit SDM' if sdm else 'Create SDM' }}</h1>
+
+<form method="post" enctype="multipart/form-data" class="needs-validation">
+    <div class="card mb-3">
+        <div class="card-header">Basic information</div>
+        <div class="card-body row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Line *</label>
+                <select class="form-select" name="line_id" required>
+                    <option value="">Select</option>
+                    {% for line in lines %}
+                        <option value="{{ line.id }}" {% if sdm and sdm.line_id == line.id %}selected{% endif %}>{{ line.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Station *</label>
+                <select class="form-select" name="station_id" required>
+                    <option value="">Select</option>
+                    {% for station in stations %}
+                        <option value="{{ station.id }}" data-line-id="{{ station.line_id }}" {% if sdm and sdm.station_id == station.id %}selected{% endif %}>{{ station.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Contractor *</label>
+                <select class="form-select" name="contractor_id" required>
+                    <option value="">Select</option>
+                    {% for contractor in contractors %}
+                        <option value="{{ contractor.id }}" {% if sdm and sdm.contractor_id == contractor.id %}selected{% endif %}>{{ contractor.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Foil No. *</label>
+                <input class="form-control" name="foil_no" value="{{ sdm.foil_no if sdm else '' }}" required>
+                <div class="form-text">Must be unique. It cannot be reused.</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Date *</label>
+                <input class="form-control" type="date" name="memo_date" value="{{ sdm.memo_date if sdm else '' }}" max="{{ today }}" required>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">Contractor staff</div>
+        <div class="card-body row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Name of Contractor Staff *</label>
+                <input class="form-control" name="staff_name" value="{{ sdm.staff_name if sdm else '' }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Emp. ID *</label>
+                <input class="form-control" name="staff_emp_id" value="{{ sdm.staff_emp_id if sdm else '' }}" required>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">Reason</div>
+        <div class="card-body row g-3">
+            <div class="col-md-12">
+                <label class="form-label">Reason *</label>
+                <select class="form-select" name="reason_id" id="reason_id" required>
+                    <option value="">Select</option>
+                    {% for reason in reasons %}
+                        <option value="{{ reason.id }}"
+                                data-public="{{ reason.needs_public_complaint }}"
+                                data-overcharging="{{ reason.needs_overcharging_status }}"
+                                data-inspection="{{ reason.needs_inspection_details }}"
+                                {% if sdm and sdm.reason_id == reason.id %}selected{% endif %}>
+                            {{ reason.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6 reason-section d-none" data-section="public">
+                <label class="form-label">Complaint No. *</label>
+                <input class="form-control" name="complaint_no" value="{{ payload.get('complaint_no', '') }}">
+            </div>
+
+            <div class="col-md-6 reason-section d-none" data-section="overcharging">
+                <label class="form-label">Overcharging Status *</label>
+                <select class="form-select" name="overcharging_status">
+                    <option value="">Select</option>
+                    <option value="proved" {% if payload.get('overcharging_status') == 'proved' %}selected{% endif %}>Proved</option>
+                    <option value="not_proved" {% if payload.get('overcharging_status') == 'not_proved' %}selected{% endif %}>Not proved</option>
+                </select>
+            </div>
+
+            {% set inspection = payload.get('inspection', {}) %}
+            <div class="reason-section d-none" data-section="inspection">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">TOM/CC/TVM No./Other location *</label>
+                        <input class="form-control" name="location_no" value="{{ inspection.get('location_no', '') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">End of Shift Receipt No.</label>
+                        <input class="form-control" name="eos_receipt_no" value="{{ inspection.get('eos_receipt_no', '') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Date of check *</label>
+                        <input class="form-control" type="date" name="date_of_check" value="{{ inspection.get('date_of_check', '') }}" max="{{ today }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Time of check *</label>
+                        <input class="form-control" type="time" name="time_of_check" value="{{ inspection.get('time_of_check', '') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Net amount as per End of Shift *</label>
+                        <input class="form-control" name="net_amount_eos" value="{{ inspection.get('net_amount_eos', '') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Amount found in possession *</label>
+                        <input class="form-control" name="amount_found" value="{{ inspection.get('amount_found', '') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Hidden Cash Found, if any</label>
+                        <input class="form-control" name="hidden_cash_found" value="{{ inspection.get('hidden_cash_found', '') }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Result (+/-) *</label>
+                        <input class="form-control" name="result" value="{{ inspection.get('result', '') }}">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Accountal of excess/short/hidden cash</label>
+                        <textarea class="form-control" name="accountal" rows="2">{{ inspection.get('accountal', '') }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <textarea class="form-control" name="remarks" rows="3" placeholder="Add remarks related to this SDM.">{{ sdm.remarks if sdm else '' }}</textarea>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">Supporting documents</div>
+        <div class="card-body">
+            <input class="form-control" type="file" name="attachments" multiple>
+            <div class="form-text">Multiple files allowed. Maximum 5 MB per file. Current allowed types: PDF, images, Word, and Excel files.</div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" name="action" value="submit">Submit</button>
+        {% if sdm %}
+            <a class="btn btn-outline-dark" href="{{ url_for('main.view_sdm', sdm_id=sdm.id) }}">Cancel</a>
+        {% else %}
+            <a class="btn btn-outline-dark" href="{{ url_for('index') }}">Cancel</a>
+        {% endif %}
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/sdm-form.js') }}"></script>
+{% endblock %}

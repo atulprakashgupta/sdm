@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Bulk Import · SDM System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h3 mb-1">Bulk Import</h1>
+        <p class="text-muted mb-0">Add or update many records at once using an Excel/CSV file.</p>
+    </div>
+    <a class="btn btn-outline-dark" href="{{ url_for('admin.admin_index') }}">Back to Admin</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">Step 1 · Download the template for the list you want to update</div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    The template already has the correct column headings. Open it in Excel, fill in your rows, and save.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for kind_value, kind_name in kinds.items() %}
+                        <a class="btn btn-outline-primary btn-sm" href="{{ url_for('admin.master_import_template', kind=kind_value) }}">
+                            Download {{ kind_name }} template
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">Step 2 · Upload the filled file</div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('admin.master_import_upload') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Which list does this file update?</label>
+                        <select class="form-select" name="kind" required>
+                            <option value="">Choose…</option>
+                            {% for kind_value, kind_name in kinds.items() %}
+                                <option value="{{ kind_value }}">{{ kind_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">File (.xlsx or .csv)</label>
+                        <input class="form-control" type="file" name="file" accept=".xlsx,.csv" required>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="deactivate_missing" id="deactivate_missing" value="1">
+                        <label class="form-check-label" for="deactivate_missing">
+                            Deactivate records that are <strong>not</strong> in this file
+                        </label>
+                        <div class="form-text">
+                            Leave this unticked unless you are sure the file contains the complete list. Deactivated
+                            records are not deleted - they keep their history and can be reactivated later by
+                            including them in a future file.
+                        </div>
+                    </div>
+                    <button class="btn btn-primary">Upload &amp; Preview</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">How it works</div>
+            <div class="card-body">
+                <ol class="small mb-0">
+                    <li class="mb-2">Download the template for the list (Employees, Lines, Stations or Contractors).</li>
+                    <li class="mb-2">Fill your data in the <strong>Data</strong> sheet under the heading row. Don't rename or remove the headings.</li>
+                    <li class="mb-2">Upload the file. You will see a preview of every change before anything is saved.</li>
+                    <li class="mb-2">Rows with problems are shown with their Excel row number so you can fix only those.</li>
+                    <li class="mb-2">Confirm, and the changes are saved in one go.</li>
+                </ol>
+                <hr>
+                <p class="small text-muted mb-1"><strong>Employees:</strong> a new Emp ID creates a login with the default password 123. Include each supervisor in the file (or already in the system) so the workflow routing stays correct.</p>
+                <p class="small text-muted mb-0"><strong>Lines/Stations:</strong> station names include the code, e.g. ARJANGARH (AJG).</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
