@@ -15,14 +15,14 @@
 {% endfor %}
 
 <div class="d-flex flex-wrap gap-2 mb-3">
-    <span class="badge text-bg-success fs-6">{{ preview.counts.NEW }} new</span>
-    <span class="badge text-bg-primary fs-6">{{ preview.counts.UPDATE }} update</span>
+    <span class="badge import-badge text-bg-success">{{ preview.counts.NEW }} new</span>
+    <span class="badge import-badge text-bg-primary">{{ preview.counts.UPDATE }} update</span>
     {% if preview.deactivate_missing %}
-        <span class="badge text-bg-warning fs-6">{{ preview.counts.DEACTIVATE }} deactivate</span>
+        <span class="badge import-badge text-bg-warning">{{ preview.counts.DEACTIVATE }} deactivate</span>
     {% endif %}
-    <span class="badge text-bg-secondary fs-6">{{ preview.counts.NO_CHANGE }} unchanged</span>
+    <span class="badge import-badge text-bg-secondary">{{ preview.counts.NO_CHANGE }} unchanged</span>
     {% if preview.has_errors %}
-        <span class="badge text-bg-danger fs-6">{{ preview.counts.ERROR }} errors</span>
+        <span class="badge import-badge text-bg-danger">{{ preview.counts.ERROR }} errors</span>
     {% endif %}
 </div>
 
@@ -37,26 +37,31 @@
     <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
         <table class="table table-sm table-hover mb-0 align-middle">
             <thead class="sticky-top bg-white">
-                <tr><th style="width: 90px;">Excel Row</th><th style="width: 130px;">Change</th><th>Record</th><th>Details</th></tr>
-            </thead>
+                            <tr>
+                                <th style="width: 90px;">Excel Row</th>
+                                <th style="width: 130px;">Change</th>
+                                <th style="min-width: 300px;">Record</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
             <tbody>
             {% for item in preview['items'] %}
                 <tr class="{{ 'table-danger' if item.action == 'ERROR' else ('table-warning' if item.action == 'DEACTIVATE' else '') }}">
                     <td>{{ item.row_number if item.row_number else '—' }}</td>
                     <td>
                         {% if item.action == 'NEW' %}
-                            <span class="badge text-bg-success">New</span>
+                            <span class="badge import-badge text-bg-success">New</span>
                         {% elif item.action == 'UPDATE' %}
-                            <span class="badge text-bg-primary">Update</span>
+                            <span class="badge import-badge text-bg-primary">Update</span>
                         {% elif item.action == 'DEACTIVATE' %}
-                            <span class="badge text-bg-warning">Deactivate</span>
+                            <span class="badge import-badge text-bg-warning">Deactivate</span>
                         {% elif item.action == 'ERROR' %}
-                            <span class="badge text-bg-danger">Error</span>
+                            <span class="badge import-badge text-bg-danger">Error</span>
                         {% else %}
-                            <span class="badge text-bg-secondary">No change</span>
+                            <span class="badge import-badge text-bg-secondary">No change</span>
                         {% endif %}
                     </td>
-                    <td>{{ item.subject }}</td>
+                    <td class="record-cell">{{ item.subject }}</td>
                     <td class="text-muted small">{{ item.message }}</td>
                 </tr>
             {% endfor %}
@@ -67,8 +72,8 @@
 
 {% if not preview.has_errors %}
     <div class="mt-3">
-        <form method="post" action="{{ url_for('admin.master_import_apply', staging_id=staging_id) }}" onsubmit="return confirm('Apply these changes to the {{ kind_label|lower }} list?');">
-            <button class="btn btn-primary btn-lg">Confirm &amp; Apply {{ kind_label }}</button>
+        <form method="post" action="{{ url_for('admin.master_import_apply', staging_id=staging_id) }}" onsubmit="return confirmImportApply();">
+            <button class="btn btn-primary me-2">Confirm &amp; Apply {{ kind_label }}</button>
             <a class="btn btn-outline-secondary" href="{{ url_for('admin.master_import_page') }}">Cancel</a>
         </form>
     </div>
@@ -77,4 +82,17 @@
         <a class="btn btn-outline-secondary" href="{{ url_for('admin.master_import_page') }}">Back — fix the file and upload again</a>
     </div>
 {% endif %}
+
+<script>
+function confirmImportApply() {
+    // If there are deactivations, ask for an extra confirmation
+    var deactCount = {{ preview.counts.DEACTIVATE if preview.counts.DEACTIVATE is defined else 0 }};
+    if (deactCount > 0) {
+        if (!confirm('This import will deactivate ' + deactCount + ' record(s). This is reversible only by reactivating manually. Are you sure you want to proceed?')) {
+            return false;
+        }
+    }
+    return confirm('Apply these changes to the {{ kind_label|lower }} list?');
+}
+</script>
 {% endblock %}

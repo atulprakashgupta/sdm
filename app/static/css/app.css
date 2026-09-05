@@ -45,6 +45,25 @@ body {
     background-color: #f0f0f0;
 }
 
+/* Import preview badges */
+.import-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 88px;
+    height: 32px;
+    font-size: 0.95rem;
+    padding: 0 0.5rem;
+}
+
+/* Record column (admin preview) */
+.record-cell {
+    min-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Column width adjustments to prevent text wrapping */
 .table th:nth-child(2), .table td:nth-child(2) {
     min-width: 84px;
